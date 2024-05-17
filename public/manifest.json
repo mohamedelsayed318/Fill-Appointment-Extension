@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "version": "1.0.0",
+  "name": "Fill Appointment Extension",
+  "description": "An automation extension to fill the appointment form for the visa application.",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["https://eg.almaviva-visa.services/appointment/*"],
+  "icons": {
+    "16": "logo.png",
+    "48": "logo.png",
+    "128": "logo.png"
+  }
+}
