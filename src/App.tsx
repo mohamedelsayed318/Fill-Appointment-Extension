@@ -14,21 +14,28 @@ type Data = {
   typeText: string;
   agreeIndex: number;
 };
+const currentDate = new Date();
+currentDate.setMonth(currentDate.getMonth() + 2);
+
+const initialData: Data = {
+  index: 0,
+  tripDate: `${currentDate.getDate()}/${
+    currentDate.getMonth() + 1
+  }/${currentDate.getFullYear()}`,
+  tripDestination: "italy",
+  cirySelect: 1,
+  cityIndex: 1, // alex = 0, cairo = 1
+  serviceSelect: 5,
+  serviceIndex: 1, // standard = 0 , VIP = 1
+  typeSelect: 3,
+  typeText: "Sport Visa (C)",
+  agreeIndex: 1,
+};
 
 function App() {
-  const [data, setData] = useState<Data>({
-    index: 0,
-    tripDate: "28/08/2025",
-    tripDestination: "italy",
-    cirySelect: 1,
-    cityIndex: 1, // alex = 0, cairo = 1
-    serviceSelect: 5,
-    serviceIndex: 1, // standard = 0 , VIP = 1
-    typeSelect: 3,
-    typeText: "Sport Visa (C)",
-    agreeIndex: 1,
-  });
+  const [data, setData] = useState<Data>(initialData);
   const notify = () => toast.success("Data has been saved!");
+
   useEffect(() => {
     chrome.storage.local.get(["city"], (result) => {
       if (result.city) {
@@ -38,6 +45,7 @@ function App() {
         }));
       }
     });
+
     chrome.storage.local.get(["cityIndex"], (result) => {
       if (result.cityIndex === "Alexandria") {
         setData((prevData) => ({
@@ -51,35 +59,45 @@ function App() {
         }));
       }
     });
+
     chrome.storage.local.get(["serviceIndex"], (result) => {
-      if (result.serviceIndex.includes("Standard")) {
+      if (typeof result.serviceIndex === "string") {
+        if (result.serviceIndex.includes("Standard")) {
+          setData((prevData) => ({
+            ...prevData,
+            serviceIndex: 0,
+          }));
+        } else if (result.serviceIndex.includes("Vip")) {
+          setData((prevData) => ({
+            ...prevData,
+            serviceIndex: 1,
+          }));
+        }
+      } else if (typeof result.serviceIndex === "number") {
         setData((prevData) => ({
           ...prevData,
-          serviceIndex: 0,
-        }));
-      } else if (result.serviceIndex.includes("Vip")) {
-        setData((prevData) => ({
-          ...prevData,
-          serviceIndex: 1,
+          serviceIndex: result.serviceIndex,
         }));
       }
     });
+
     chrome.storage.local.get(["typeText"], (result) => {
-      setData((prevdata) => ({
-        ...prevdata,
+      setData((prevData) => ({
+        ...prevData,
         typeText: result.typeText,
       }));
     });
+
     chrome.storage.local.get(["tripDate"], (result) => {
-      setData((prevdata) => ({
-        ...prevdata,
+      setData((prevData) => ({
+        ...prevData,
         tripDate: result.tripDate,
       }));
     });
   }, []);
 
   const handleClick = async () => {
-    let [tab] = await chrome.tabs.query({ active: true });
+    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     chrome.scripting.executeScript<any, void>({
       target: { tabId: tab.id! },
       args: [data],
@@ -137,6 +155,7 @@ function App() {
             elements.click();
           }, timeout);
         }
+
         async function fillTypeSelect(
           id: number,
           text: string,
@@ -174,7 +193,7 @@ function App() {
   };
 
   const handleGrapData = async () => {
-    let [tab] = await chrome.tabs.query({ active: true });
+    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     chrome.scripting.executeScript<any, void>({
       target: { tabId: tab.id! },
 
@@ -221,24 +240,39 @@ function App() {
     });
   };
 
+  const handleClear = () => {
+    setData(initialData);
+    chrome.storage.local.set({ city: initialData.tripDestination });
+    chrome.storage.local.set({ cityIndex: initialData.cityIndex });
+    chrome.storage.local.set({ serviceIndex: initialData.serviceIndex });
+    chrome.storage.local.set({ typeText: initialData.typeText });
+    chrome.storage.local.set({ tripDate: initialData.tripDate });
+    notify();
+  };
+
   return (
     <>
       <Toaster />
       <h1 className="text-lg mb-3 font-extrabold bg-clip-text text-transparent bg-[linear-gradient(to_right,theme(colors.indigo.400),theme(colors.indigo.100),theme(colors.sky.400),theme(colors.fuchsia.400),theme(colors.sky.400),theme(colors.indigo.100),theme(colors.indigo.400))] bg-[length:200%_auto] animate-gradient">
         Fill Appointment Extension
       </h1>
-      <div className="flex items-center justify-center gap-4">
-        <button className="bg-slate-800" onClick={handleClick}>
-          Fill inputs
-        </button>
-        <button
-          className="bg-slate-800"
-          onClick={() => {
-            handleGrapData();
-            notify();
-          }}
-        >
-          Grap data
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-center gap-4">
+          <button className="bg-slate-800" onClick={handleClick}>
+            Fill inputs
+          </button>
+          <button
+            className="bg-slate-800"
+            onClick={() => {
+              handleGrapData();
+              notify();
+            }}
+          >
+            Grap data
+          </button>
+        </div>
+        <button className="bg-red-700" onClick={handleClear}>
+          Clear storage
         </button>
       </div>
     </>
