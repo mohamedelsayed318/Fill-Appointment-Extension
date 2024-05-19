@@ -26,9 +26,9 @@ const initialData: Data = {
   cirySelect: 1,
   cityIndex: 1, // alex = 0, cairo = 1
   serviceSelect: 5,
-  serviceIndex: 1, // standard = 0 , VIP = 1
+  serviceIndex: 0, // standard = 0 , VIP = 1
   typeSelect: 3,
-  typeText: "Sport Visa (C)",
+  typeText: "Employment Visa (C)",
   agreeIndex: 1,
 };
 
